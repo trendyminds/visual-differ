@@ -2,6 +2,8 @@
 
 ## A Node-based auditing tool to visually diff pages
 
+<img src="example.png" alt="An example of the visual diff tool in action">
+
 ## Getting Started
 1. Download the project
 2. Install dependencies `npm i`
