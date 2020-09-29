@@ -2,7 +2,7 @@
 
 ## A Node-based auditing tool to visually diff pages
 
-<img src="example.png" alt="An example of the visual diff tool in action">
+<img src="example.png" alt="An example of the visual diff tool in action" style="border-radius: 10px">
 
 ## Getting Started
 1. Download the project
