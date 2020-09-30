@@ -3,8 +3,8 @@
 module.exports = {
   // The viewport to use when creating images from the URLs
   viewport: {
-    width: 1500,
-    height: 1500,
+    width: 1280,
+    height: 800,
   },
 
   // Matching threshold, ranges from 0 to 1. Smaller values make the comparison more sensitive. 0.1 by default.
@@ -17,8 +17,14 @@ module.exports = {
   // The URLs to test for visual differences
   urls: [
     {
-      a: "https://google.com",
-      b: "https://yahoo.com",
+      // The first URL to test
+      a: "https://time.is/Los_Angeles",
+
+      // The URL to compare the first test to
+      b: "https://time.is/New_York",
+
+      // Need to pass in some custom CSS to your test so you can hide or change elements?
+      // Provide as much CSS you need and it will be applied when navigating to the URLs
       css: ``,
     },
   ],
