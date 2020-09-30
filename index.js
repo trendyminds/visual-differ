@@ -111,4 +111,11 @@ const config = require("./config");
 
     fs.writeFileSync(`screenshots/${date}/${i}/diff.png`, PNG.sync.write(diff));
   }
+
+  log(chalk.green(`\n🎉 Audit complete!`));
+  log(
+    `- You can view a summary of non-trivial differences in ${chalk.green(
+      `screenshots/${date}/audit.csv`
+    )}`
+  );
 })();
