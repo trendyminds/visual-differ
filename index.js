@@ -64,7 +64,7 @@ const config = require("./config");
   // Append data to a CSV file
   fs.appendFileSync(
     `screenshots/${date}/audit.csv`,
-    `URL A, URL B, Path to diff file, # of pixels difference, Notes\n`
+    `URL A, URL B, Path to diff file, # of pixels difference, Status, Notes\n`
   );
 
   for (let i = 0; i < config.urls.length; i++) {
@@ -101,13 +101,13 @@ const config = require("./config");
         )
       );
       log(chalk.red(`\t- File: screenshots/${date}/${i}/diff.png`));
-
-      // Append data to a CSV file
-      fs.appendFileSync(
-        `screenshots/${date}/audit.csv`,
-        `${url.a},${url.b},${i}/diff.png,${diffAmount},""\n`
-      );
     }
+
+    // Append data to a CSV file
+    fs.appendFileSync(
+      `screenshots/${date}/audit.csv`,
+      `${url.a},${url.b},${i}/diff.png,${diffAmount},${diffAmount <= config.nonacceptableDiff ? "Pass" : "Fail"},""\n`
+    );
 
     fs.writeFileSync(`screenshots/${date}/${i}/diff.png`, PNG.sync.write(diff));
   }
