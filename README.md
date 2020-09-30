@@ -1,17 +1,17 @@
-# 🖼  Visual Diff Tool
+# 🎨 Visual Differ
 A Node-based auditing tool to visually diff pages
 
-<img src="example.png" alt="An example of the visual diff tool CLI">
+<img src="example.png" alt="An example of the Visual Differ CLI">
 
 ## 🤔 What is it?
 
 Have you ever made a change that negatively impacted the front-end? Checking one page for a change might be easy. Checking hundreds is difficult and time-consuming.
 
-The **Visual Diff Tool** allows you to supply an array of URLs to audit and, if a non-trivial difference is detected (defined in your config file), an `audit.csv` is provided for your review to ensure all differences have been properly accounted for.
+**Visual Differ** allows you to supply an array of URLs to audit and, if a non-trivial difference is detected (defined in your config file), an `audit.csv` is provided for your review to ensure all differences have been properly accounted for.
 
 Additionally, you can review the screenshots that were taken and see a "heatmap" of the visual differences thanks to [the pixelmatch library](https://github.com/mapbox/pixelmatch).
 
-<img src="example-diff.png" alt="An example of the visual diff tool displaying the screenshots and diff">
+<img src="example-diff.png" alt="An example of the Visual Differ displaying the screenshots and diff">
 
 ## ✅ Usage
 1. Download the project
