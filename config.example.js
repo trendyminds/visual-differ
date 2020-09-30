@@ -11,7 +11,7 @@ module.exports = {
   // See pixelmatch for more information: https://github.com/mapbox/pixelmatch#api
   diffThreshold: 0.1,
 
-  // The number of pixels in the diff that, once reached, will display a warning in the console during the testing
+  // The number of pixels in the diff that, once reached, will be flagged in the audit during the testing
   nonacceptableDiff: 10,
 
   // The URLs to test for visual differences
