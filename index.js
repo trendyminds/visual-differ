@@ -16,7 +16,7 @@ const config = require("./config");
   log(chalk.blue("\nGenerating images for your URLs..."));
 
   for (let i = 0; i < config.urls.length; i++) {
-    fs.mkdirSync(`screenshots/${date}/${i}`, { recursive: true });
+    fs.mkdirSync(`screenshots/${date}/${i + 1}`, { recursive: true });
 
     const url = config.urls[i];
     log(
@@ -35,7 +35,7 @@ const config = require("./config");
     }, url);
 
     await page.screenshot({
-      path: `screenshots/${date}/${i}/a.png`,
+      path: `screenshots/${date}/${i + 1}/a.png`,
     });
 
     await page.goto(url.b);
@@ -49,7 +49,7 @@ const config = require("./config");
     }, url);
 
     await page.screenshot({
-      path: `screenshots/${date}/${i}/b.png`,
+      path: `screenshots/${date}/${i + 1}/b.png`,
     });
   }
 
@@ -64,18 +64,18 @@ const config = require("./config");
   // Append data to a CSV file
   fs.appendFileSync(
     `screenshots/${date}/audit.csv`,
-    `URL A, URL B, Path to diff file, # of pixels difference, Notes\n`
+    `URL A, URL B, Path to diff file, # of pixels difference, Status, Notes\n`
   );
 
   for (let i = 0; i < config.urls.length; i++) {
     const url = config.urls[i];
 
     const img1 = PNG.sync.read(
-      fs.readFileSync(`screenshots/${date}/${i}/a.png`)
+      fs.readFileSync(`screenshots/${date}/${i + 1}/a.png`)
     );
 
     const img2 = PNG.sync.read(
-      fs.readFileSync(`screenshots/${date}/${i}/b.png`)
+      fs.readFileSync(`screenshots/${date}/${i + 1}/b.png`)
     );
 
     const { width, height } = img1;
@@ -100,16 +100,21 @@ const config = require("./config");
           `\t- WARNING! It appears there's a non-trivial difference from this test!`
         )
       );
-      log(chalk.red(`\t- File: screenshots/${date}/${i}/diff.png`));
-
-      // Append data to a CSV file
-      fs.appendFileSync(
-        `screenshots/${date}/audit.csv`,
-        `${url.a},${url.b},${i}/diff.png,${diffAmount},""\n`
-      );
+      log(chalk.red(`\t- File: screenshots/${date}/${i + 1}/diff.png`));
     }
 
-    fs.writeFileSync(`screenshots/${date}/${i}/diff.png`, PNG.sync.write(diff));
+    // Append data to a CSV file
+    fs.appendFileSync(
+      `screenshots/${date}/audit.csv`,
+      `${url.a},${url.b},${i + 1}/diff.png,${diffAmount},${
+        diffAmount <= config.nonacceptableDiff ? "Pass" : "Fail"
+      },""\n`
+    );
+
+    fs.writeFileSync(
+      `screenshots/${date}/${i + 1}/diff.png`,
+      PNG.sync.write(diff)
+    );
   }
 
   log(chalk.green(`\n🎉 Audit complete!`));
