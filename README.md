@@ -7,7 +7,7 @@ A Node-based auditing tool to visually diff pages
 
 Have you ever made a change that negatively impacted the front-end? Checking one page for a change might be easy. Checking hundreds is difficult and time-consuming.
 
-**Visual Differ** allows you to supply an array of URLs to audit and, if a non-trivial difference is detected (defined in your config file), an `audit.csv` is provided for your review to ensure all differences have been properly accounted for.
+**Visual Differ** allows you to supply an array of URLs to audit and will create an `audit.csv` to show which comparisons passed and which ones had a non-trivial difference as defined in your config file.
 
 Additionally, you can review the screenshots that were taken and see a "heatmap" of the visual differences thanks to [the pixelmatch library](https://github.com/mapbox/pixelmatch).
 
@@ -18,7 +18,7 @@ Additionally, you can review the screenshots that were taken and see a "heatmap"
 2. Install dependencies `npm i`
 3. Copy `config.example.js` to `config.js`
 4. Modify your `config.js` values and supply your array of URLs to test
-5. Run `node index.js` to create screenshots, diffs and generate an audit.csv file of what's different
+5. Run `node index.js` to create screenshots, diffs and generate an `audit.csv` file
 
 ## ⚙️ Configuring your Test
 
