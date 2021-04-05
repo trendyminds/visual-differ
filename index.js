@@ -1,4 +1,4 @@
-const puppeteer = require("puppeteer");
+const { Cluster } = require("puppeteer-cluster");
 const pixelmatch = require("pixelmatch");
 const fs = require("fs");
 const dayjs = require("dayjs");
@@ -9,52 +9,54 @@ const config = require("./config");
 
 (async () => {
   const date = dayjs().format("YYYY_MM_DD__HH-mm-ss");
-  const browser = await puppeteer.launch();
-  const page = await browser.newPage();
-  await page.setViewport(config.viewport);
+
+  // Setup the batch jobs for Puppeteer crawling
+  const cluster = await Cluster.launch({
+    concurrency: Cluster.CONCURRENCY_CONTEXT,
+    maxConcurrency: config.maxConcurrency,
+  });
+
+  // We don't define a task and instead use own functions
+  const screenshot = async ({ page, data }) => {
+    log(`- Getting a screenshot of ${chalk.green(data.url)}`);
+
+    // Create the directory for the given image
+    fs.mkdirSync(`screenshots/${date}/${data.item}`, { recursive: true });
+
+    // Generate screenshots of the A and B URLs
+    await page.goto(data.url);
+
+    // Load in any custom CSS that we have defined
+    await page.evaluate((data) => {
+      let style = document.createElement("style");
+      style.innerHTML = data.css;
+      document.getElementsByTagName("head")[0].appendChild(style);
+    }, data);
+
+    await page.screenshot({
+      path: `screenshots/${date}/${data.item}/${data.test}.png`,
+    });
+  };
 
   log(chalk.blue("\nGenerating images for your URLs..."));
 
-  for (let i = 0; i < config.urls.length; i++) {
-    fs.mkdirSync(`screenshots/${date}/${i + 1}`, { recursive: true });
-
-    const url = config.urls[i];
-    log(
-      `- Making screenshots of ${chalk.green(url.a)} and ${chalk.green(url.b)}`
+  // Add each page in our settings to a queue
+  config.urls.forEach((data, i) => {
+    // Add the "A" test to our queue
+    cluster.queue(
+      { url: data.a, css: data.css, test: "a", item: i + 1 },
+      screenshot
     );
 
-    // Generate screenshots of the A and B URLs
-    await page.goto(url.a);
+    // Add the "B" test to our queue
+    cluster.queue(
+      { url: data.b, css: data.css, test: "b", item: i + 1 },
+      screenshot
+    );
+  });
 
-    // Load in any custom CSS that we have defined
-    await page.evaluate((url) => {
-      let style = document.createElement("style");
-      style.type = "text/css";
-      style.innerHTML = url.css;
-      document.getElementsByTagName("head")[0].appendChild(style);
-    }, url);
-
-    await page.screenshot({
-      path: `screenshots/${date}/${i + 1}/a.png`,
-    });
-
-    await page.goto(url.b);
-
-    // Load in any custom CSS that we have defined
-    await page.evaluate((url) => {
-      let style = document.createElement("style");
-      style.type = "text/css";
-      style.innerHTML = url.css;
-      document.getElementsByTagName("head")[0].appendChild(style);
-    }, url);
-
-    await page.screenshot({
-      path: `screenshots/${date}/${i + 1}/b.png`,
-    });
-  }
-
-  // All done with Puppeteer so let's quit it
-  await browser.close();
+  await cluster.idle();
+  await cluster.close();
 
   /**
    * Generate diffs for each captured image
