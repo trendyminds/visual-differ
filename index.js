@@ -23,7 +23,8 @@ const config = require("./config");
     // Create the directory for the given image
     fs.mkdirSync(`screenshots/${date}/${data.item}`, { recursive: true });
 
-    // Generate screenshots of the A and B URLs
+    // Generate screenshots of the A and B URLs using our specified viewport size
+    await page.setViewport(config.viewport);
     await page.goto(data.url);
 
     // Load in any custom CSS that we have defined
