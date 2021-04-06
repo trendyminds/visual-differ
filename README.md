@@ -1,7 +1,7 @@
 # 🎨 Visual Differ
 A Node-based auditing tool to visually diff pages
 
-<img src="example.png" alt="An example of the Visual Differ CLI">
+<img src="example-cli.png" alt="An example of the Visual Differ CLI">
 
 ## 🤔 What is it?
 
