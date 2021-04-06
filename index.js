@@ -1,71 +1,94 @@
-const puppeteer = require("puppeteer");
+const { Cluster } = require("puppeteer-cluster");
 const pixelmatch = require("pixelmatch");
 const fs = require("fs");
 const dayjs = require("dayjs");
 const PNG = require("pngjs").PNG;
 const chalk = require("chalk");
+const cliProgress = require("cli-progress");
 const log = console.log;
 const config = require("./config");
 
+// Setup our progress bars
+const screenshotProgress = new cliProgress.SingleBar(
+  {},
+  cliProgress.Presets.rect
+);
+
+const diffProgress = new cliProgress.SingleBar({}, cliProgress.Presets.rect);
+
+// Create a timestamp for file and folder names
+const date = dayjs().format("YYYY_MM_DD__HH-mm-ss");
+
 (async () => {
-  const date = dayjs().format("YYYY_MM_DD__HH-mm-ss");
-  const browser = await puppeteer.launch();
-  const page = await browser.newPage();
-  await page.setViewport(config.viewport);
+  // Setup the batch jobs for Puppeteer crawling
+  const cluster = await Cluster.launch({
+    concurrency: Cluster.CONCURRENCY_CONTEXT,
+    maxConcurrency: config.maxConcurrency,
+  });
 
-  log(chalk.blue("\nGenerating images for your URLs..."));
+  // We don't define a task and instead use own functions
+  const screenshot = async ({ page, data }) => {
+    // Create the directory for the given image
+    fs.mkdirSync(`screenshots/${date}/${data.item}`, { recursive: true });
 
-  for (let i = 0; i < config.urls.length; i++) {
-    fs.mkdirSync(`screenshots/${date}/${i + 1}`, { recursive: true });
+    // Generate screenshots of the A and B URLs using our specified viewport size
+    await page.setViewport(config.viewport);
+    await page.goto(data.url);
 
-    const url = config.urls[i];
-    log(
-      `- Making screenshots of ${chalk.green(url.a)} and ${chalk.green(url.b)}`
+    // Load in any custom CSS that we have defined
+    await page.evaluate((data) => {
+      let style = document.createElement("style");
+      style.innerHTML = data.css;
+      document.getElementsByTagName("head")[0].appendChild(style);
+    }, data);
+
+    await page.screenshot({
+      path: `screenshots/${date}/${data.item}/${data.test}.png`,
+    });
+
+    // Update the progress
+    screenshotProgress.increment();
+  };
+
+  // Initiate the progress bar
+  log(chalk.blue("\nGenerating images from your URLs..."));
+  screenshotProgress.start(config.urls.length * 2, 0);
+
+  // Add each page in our settings to a queue
+  config.urls.forEach((data, i) => {
+    // Add the "A" test to our queue
+    cluster.queue(
+      { url: data.a, css: data.css, test: "a", item: i + 1 },
+      screenshot
     );
 
-    // Generate screenshots of the A and B URLs
-    await page.goto(url.a);
+    // Add the "B" test to our queue
+    cluster.queue(
+      { url: data.b, css: data.css, test: "b", item: i + 1 },
+      screenshot
+    );
+  });
 
-    // Load in any custom CSS that we have defined
-    await page.evaluate((url) => {
-      let style = document.createElement("style");
-      style.type = "text/css";
-      style.innerHTML = url.css;
-      document.getElementsByTagName("head")[0].appendChild(style);
-    }, url);
+  await cluster.idle();
+  await cluster.close();
 
-    await page.screenshot({
-      path: `screenshots/${date}/${i + 1}/a.png`,
-    });
-
-    await page.goto(url.b);
-
-    // Load in any custom CSS that we have defined
-    await page.evaluate((url) => {
-      let style = document.createElement("style");
-      style.type = "text/css";
-      style.innerHTML = url.css;
-      document.getElementsByTagName("head")[0].appendChild(style);
-    }, url);
-
-    await page.screenshot({
-      path: `screenshots/${date}/${i + 1}/b.png`,
-    });
-  }
-
-  // All done with Puppeteer so let's quit it
-  await browser.close();
+  // Stop the progress bar
+  screenshotProgress.stop();
 
   /**
    * Generate diffs for each captured image
    */
-  log(chalk.blue("\nGenerating diffs..."));
+  log(chalk.blue("\nDiffing images and creating report..."));
+  diffProgress.start(config.urls.length, 0);
 
   // Append data to a CSV file
   fs.appendFileSync(
     `screenshots/${date}/audit.csv`,
     `URL A, URL B, Path to diff file, # of pixels difference, Status, Notes\n`
   );
+
+  // Create an array that holds the pages that have non-acceptable differences
+  let nonacceptableDiffs = [];
 
   for (let i = 0; i < config.urls.length; i++) {
     const url = config.urls[i];
@@ -81,8 +104,6 @@ const config = require("./config");
     const { width, height } = img1;
     const diff = new PNG({ width, height });
 
-    log(`- Creating a diff of ${chalk.green(url.a)} and ${chalk.green(url.b)}`);
-
     const diffAmount = pixelmatch(
       img1.data,
       img2.data,
@@ -95,12 +116,7 @@ const config = require("./config");
     );
 
     if (diffAmount >= config.nonacceptableDiff) {
-      log(
-        chalk.red(
-          `\t- WARNING! It appears there's a non-trivial difference from this test!`
-        )
-      );
-      log(chalk.red(`\t- File: screenshots/${date}/${i + 1}/diff.png`));
+      nonacceptableDiffs.push(`screenshots/${date}/${i + 1}/diff.png`);
     }
 
     // Append data to a CSV file
@@ -115,11 +131,24 @@ const config = require("./config");
       `screenshots/${date}/${i + 1}/diff.png`,
       PNG.sync.write(diff)
     );
+
+    // Update the progress
+    diffProgress.increment();
   }
 
-  log(chalk.green(`\n🎉 Audit complete!`));
+  // Exit progress bar
+  diffProgress.stop();
+
   log(
-    `- You can view a summary of non-trivial differences in ${chalk.green(
+    `\n\n⚠️  A total of ${nonacceptableDiffs.length} page(s) had non-acceptable differences.`
+  );
+  nonacceptableDiffs.forEach((diff) => {
+    log(chalk.red(`- ${diff}`));
+  });
+
+  log(`\n\n🎉 Audit complete!`);
+  log(
+    `You can view a full report of this audit at ${chalk.green(
       `screenshots/${date}/audit.csv`
     )}`
   );

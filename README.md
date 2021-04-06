@@ -39,6 +39,9 @@ module.exports = {
   // The number of pixels in the diff that, once reached, will be flagged in the audit during the testing
   nonacceptableDiff: 10,
 
+  // The maximum amount of screenshot requests to run concurrently. Careful.
+  maxConcurrency: 2,
+
   // The URLs to test for visual differences
   urls: [
     {
