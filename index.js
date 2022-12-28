@@ -2,6 +2,7 @@ const { Cluster } = require("puppeteer-cluster");
 const pixelmatch = require("pixelmatch");
 const fs = require("fs");
 const dayjs = require("dayjs");
+const path = require('node:path');
 const PNG = require("pngjs").PNG;
 const chalk = require("chalk");
 const cliProgress = require("cli-progress");
@@ -94,11 +95,11 @@ const date = dayjs().format("YYYY_MM_DD__HH-mm-ss");
     const url = config.urls[i];
 
     const img1 = PNG.sync.read(
-      fs.readFileSync(`screenshots/${date}/${i + 1}/a.png`)
+      fs.readFileSync(path.normalize(`screenshots/${date}/${i + 1}/a.png`))
     );
 
     const img2 = PNG.sync.read(
-      fs.readFileSync(`screenshots/${date}/${i + 1}/b.png`)
+      fs.readFileSync(path.normalize(`screenshots/${date}/${i + 1}/b.png`))
     );
 
     const { width, height } = img1;

@@ -11,13 +11,13 @@
   "license": "ISC",
   "prettier": {},
   "dependencies": {
-    "chalk": "^4.1.0",
+    "chalk": "^4.1.2",
     "cli-progress": "^3.9.0",
     "dayjs": "^1.10.4",
     "pixelmatch": "^5.2.1",
     "pngjs": "^6.0.0",
-    "puppeteer": "^8.0.0",
-    "puppeteer-cluster": "^0.22.0"
+    "puppeteer": "^19.4.1",
+    "puppeteer-cluster": "^0.23.0"
   },
   "devDependencies": {
     "prettier": "^2.2.1"
