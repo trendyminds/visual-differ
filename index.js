@@ -83,8 +83,8 @@ const date = dayjs().format("YYYY_MM_DD__HH-mm-ss");
 
   // Append data to a CSV file
   fs.appendFileSync(
-    `screenshots/${date}/audit.csv`,
-    `URL A, URL B, Path to diff file, # of pixels difference, Status, Notes\n`
+    `screenshots/${date}/audit-${date}.csv`,
+    `sep=,\nURL A, URL B, Path to diff file, # of pixels difference, Status, Notes\n`
   );
 
   // Create an array that holds the pages that have non-acceptable differences
@@ -121,7 +121,7 @@ const date = dayjs().format("YYYY_MM_DD__HH-mm-ss");
 
     // Append data to a CSV file
     fs.appendFileSync(
-      `screenshots/${date}/audit.csv`,
+      `screenshots/${date}/audit-${date}.csv`,
       `${url.a},${url.b},${i + 1}/diff.png,${diffAmount},${
         diffAmount <= config.nonacceptableDiff ? "Pass" : "Fail"
       },""\n`
@@ -149,7 +149,7 @@ const date = dayjs().format("YYYY_MM_DD__HH-mm-ss");
   log(`\n\n🎉 Audit complete!`);
   log(
     `You can view a full report of this audit at ${chalk.green(
-      `screenshots/${date}/audit.csv`
+      `screenshots/${date}/audit-${date}.csv`
     )}`
   );
 })();
